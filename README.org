@@ -1,0 +1,63 @@
+* NixOS Bootstrap
+Scripts for bootstrapping a NixOS system from the minimal ISO.  Generally you
+will boot using the ISO, then run something like:
+
+: bash <(curl https://...) [host name] [flake repo]
+
+The script will configure and install NixOS using a configuration for the host
+from a flake.
+
+** uefi-luks-lvm
+
+~uefi-luks-lvm.bash~ installs NixOS onto a UEFI system using a boot partition
+and an encrypted LVM partition split into swap and root logical volumes.  It
+operates idempotently, meaning it will not re-format or re-create things if they
+already exist as expected.
+
+You must create two partitions before running the script: a boot partition named
+~${host}-boot~ and a Linux partition named ~${host}-lvm-crypt~.
+
+The boot partition should be an EFI system partition named ~${host}-boot~ (where
+~host~ is either the system's hostname or a name you gave as an argument).  If
+~${host}-boot~ does not exist, ~uefi-luks-lvm.bash~ exits.  If ~${host}-boot~
+does not contain a FAT32 filesystem, ~uefi-luks-lvm.bash~ creates one and names
+it ~BOOT~. If one already exists, ~uefi-luks-lvm.bash~ asks if you would like to
+(optionally) re-format it.  Either way, ~uefi-luks-lvm.bash~ mounts
+~${host}-boot~ at ~/mnt/boot~.
+
+The Linux partition should be named ~${host}-lvm-crypt~.  If ~${host}-lvm-crypt~
+does not exist, ~uefi-luks-lvm.bash~ exits.  If ~${host}-lvm-crypt~ is not a
+LUKS volume, ~uefi-luks-lvm.bash~ formats it.  If it is already a LUKS volume,
+~uefi-luks-lvm.bash~ asks if you would like to (optionally) re-format it.
+Either way, ~uefi-luks-lvm.bash~ names it ~${host}-lvm~ and opens it.
+
+If ~${host}-lvm~ is not an LVM physical volume, ~uefi-luks-lvm.bash~ makes it
+physical volume.  If an LVM volume group named ~${host}~ does not exist,
+~uefi-luks-lvm.bash~ creates one.
+
+If a swap LVM logical volume does not exist, ~uefi-luks-lvm.bash~ creates it
+with a size 2x or 3x the physical RAM (depending on how you answer a query),
+names it ~${host}-swap~, and formats it.  If a logical volume named
+~${host}-swap~ already exists, ~uefi-luks-lvm.bash~ asks if you would like to
+(optionally) reformat it.  Either way, ~uefi-luks-lvm.bash~ enables it.
+
+If a root LVM logical volume does not exist, ~uefi-luks-lvm.bash~ creates it
+using the rest of the free space, names it ~${host}-root~, and formats it as an
+ext4 filesystem.  If a logical volume named ~${host}-root~ already exists, then
+~uefi-luks-lvm.bash~ asks if you wouldd like to (optionally) reformat it.
+Either way ~uefi-luks-lvm.bash~ mounts it at ~/mnt~.
+
+~uefi-luks-lvm.bash~ clones the flake repositiory into ~/mnt/etc~ (where the
+repository is either ~github.com/thoughtfull-systems/nixos~ or a repository you
+gave as an argument) and checks out the ~${host}~ branch, if it exists.
+
+~uefi-luks-lvm.bash~ runs ~nixos-generate-config~ and moves
+~hardware-configuration.nix~ into ~/mnt/etc/nixos/hosts/${host}~.  (This assumes
+a certain structure to the repository, which is a top-level ~hosts~ directory
+and within that a directory for each host configured by the repository.)
+
+Finally, ~uefi-luks-lvm.bash~ runs ~nixos-install --no-root-password --flake
+.#${host}~ from ~/mnt/etc/nixos~.
+
+Note: ~uefi-luks-lvm.bash~ logs all of the activity to
+~/mnt/etc/nixos/hosts/${host}/install.log~.
