@@ -75,7 +75,7 @@ function is_ext4() {
 }
 
 host=${1:-$(hostname)}
-flake_repo=${2:-https://github.com/thoughtfull-systems/nixos}
+flake_repo=${2:-https://github.com/thoughtfull-systems/nix-config}
 
 cat <<EOF
 ================================================================================
