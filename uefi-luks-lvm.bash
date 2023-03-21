@@ -7,6 +7,17 @@ if [[ ! -v LOGFILE ]]; then
   exit ${?}
 fi
 
+if [[ ! -x git ]]; then
+  nix --extra-experimental-features nix-command \
+      --extra-experimental-features flakes \
+      shell \
+      nixpkgs#git \
+      nixpkgs#age \
+      nixpkgs#age-plugin-yubikey \
+      -c bash "${0}" "${@}"
+  exit ${?}
+fi
+
 # if this is done before the above subshell they get reset
 set -euo pipefail
 
