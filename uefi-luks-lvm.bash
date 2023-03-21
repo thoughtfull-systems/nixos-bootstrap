@@ -126,6 +126,12 @@ nix-env -iA nixos.file
 log "Installing 'git'..."
 nix-env -iA nixos.git
 
+log "Installing 'age'..."
+nix-env -iA nixos.age
+
+log "Installing 'age-plugin-yubikey'..."
+nix-env -iA nixos.age-plugin-yubikey
+
 efi_device_name=${host}-boot
 efi_device=/dev/disk/by-partlabel/${efi_device_name}
 
