@@ -10,7 +10,7 @@ if [[ ! -v LOGFILE ]]; then
        nixpkgs#git \
        nixpkgs#age \
        nixpkgs#age-plugin-yubikey \
-       nixpkgs#pcsclite-with-polkit \
+       nixpkgs#pcsclite \
        -c bash "${0}" "${@}") |& tee ${LOGFILE}
   exit ${?}
 fi
