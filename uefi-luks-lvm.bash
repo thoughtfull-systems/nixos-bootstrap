@@ -2,20 +2,15 @@
 
 if [[ ! -v LOGFILE ]]; then
   export LOGFILE=$(mktemp -q)
+  echo "== Setting up environment"
   echo "== Using temporary logfile: ${LOGFILE}"
-  (bash "${0}" "${@}") |& tee ${LOGFILE}
-  exit ${?}
-fi
-
-if [[ ! -x git ]]; then
-  echo "=== Preparing install environment"
-  nix --extra-experimental-features nix-command \
-      --extra-experimental-features flakes \
-      shell \
-      nixpkgs#git \
-      nixpkgs#age \
-      nixpkgs#age-plugin-yubikey \
-      -c bash "${0}" "${@}"
+  (nix --extra-experimental-features nix-command \
+       --extra-experimental-features flakes \
+       shell \
+       nixpkgs#git \
+       nixpkgs#age \
+       nixpkgs#age-plugin-yubikey \
+       -c bash "${0}" "${@}") |& tee ${LOGFILE}
   exit ${?}
 fi
 
